@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
 Future<Position> getPosition() async {
@@ -23,4 +24,9 @@ Future<Position> getPosition() async {
   } 
 
   return await Geolocator.getCurrentPosition();
+}
+abstract class CurrentPositions {
+  static ValueNotifier<double> currentLattitude = ValueNotifier(0);
+  static ValueNotifier<double> currentLongitude = ValueNotifier(0);
+  static ValueNotifier<String> currentLocationName = ValueNotifier("");
 }

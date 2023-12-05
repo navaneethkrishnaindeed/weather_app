@@ -4,6 +4,9 @@ import 'package:weather/weather.dart';
 abstract class IWeatherRepo {
   factory IWeatherRepo() = RepositoryImpl;
   getCurrentWeather({required double latitude, required double longitude});
+  getCurrentWeatherForMap({
+    required String place
+  });
 }
 
 class RepositoryImpl implements IWeatherRepo {
@@ -16,6 +19,16 @@ class RepositoryImpl implements IWeatherRepo {
       latitude,
       longitude,
     );
+    await wf.currentWeatherByCityName("Perumbavoor");
+    return weather;
+  }
+  
+  @override
+  getCurrentWeatherForMap({required String place})async {
+   WeatherFactory wf = WeatherFactory(API_KEY, language: Language.ENGLISH);
+
+    Weather weather =     await wf.currentWeatherByCityName(place);
+    
     return weather;
   }
 }

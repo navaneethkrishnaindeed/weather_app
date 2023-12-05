@@ -14,9 +14,10 @@ class WeatherBlocBloc extends Bloc<WeatherBlocEvent, WeatherBlocState> {
     on<FetchWeather>((event, emit) async {
       emit(WeatherBlocLoading());
       try {
-        var weatherResult =await repository.getCurrentWeather(
+        Weather weatherResult =await repository.getCurrentWeather(
             latitude: event.position.latitude,
             longitude: event.position.longitude);
+            
         emit(WeatherBlocSuccess(weatherResult));
       } catch (e) {
         emit(WeatherBlocFailure());
