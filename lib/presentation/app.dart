@@ -5,7 +5,6 @@ import 'package:geolocator/geolocator.dart';
 
 import '../domain/utils/get_location.dart';
 import 'home_screen/home.dart';
-import 'map_screen/maps.dart';
 
 
 class MainApp extends StatelessWidget {
@@ -23,7 +22,7 @@ class MainApp extends StatelessWidget {
 							create: (context) => WeatherBlocBloc()..add(
 								FetchWeather(snap.data as Position)
 							),
-							child: const AnimatedMapControllerPage(),
+							child: const HomeScreen(),
 						);
 					} else {
 						return const Scaffold(

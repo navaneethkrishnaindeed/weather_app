@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:weather_app/application/weather_bloc_bloc.dart';
 
@@ -23,7 +24,8 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
   static const _inProgressId = 'AnimatedMapController#MoveInProgress';
   static const _finishedId = 'AnimatedMapController#MoveFinished';
 
-  static var currentPos = LatLng(CurrentPositions.currentLattitude.value, CurrentPositions.currentLongitude.value);
+  static var currentPos = LatLng(CurrentPositions.currentLattitude.value,
+      CurrentPositions.currentLongitude.value);
   // static const _paris = LatLng(48.8566, 2.3522);
   // static const _dublin = LatLng(53.3498, -6.2603);
 
@@ -85,46 +87,87 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
   }
 
   @override
+  void initState() {
+    super.initState();
+    getPosition();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Animated MapController')),
-      // drawer: const MenuDrawer(AnimatedMapControllerPage.route),
-      body: BlocBuilder<WeatherBlocBloc, WeatherBlocState>(
-        builder: (context, state) {
-          if (state is WeatherBlocSuccess) {
-            _markers.add(Marker(
-                width: 80,
-                height: 80,
-                point: currentPos,
-                child: getWeatherIcon(state.weather.weatherConditionCode!)));
-          }
-          return Column(
-            children: [
-              Flexible(
-                child: FlutterMap(
-                  mapController: mapController,
-                  options:  MapOptions(
-                    initialCenter: currentPos,
-                    initialZoom: 15,
-                    maxZoom: 10,
-                    minZoom: 3,
+        appBar: AppBar(title: const Text('Animated MapController')),
+        // drawer: const MenuDrawer(AnimatedMapControllerPage.route),
+        body: FutureBuilder(
+            future: getPosition(),
+            builder: (context, snap) {
+              if (snap.hasData) {
+                return BlocProvider<WeatherBlocBloc>(
+                  create: (context) {
+                    return WeatherBlocBloc()
+                      ..add(FetchWeather(snap.data as Position));
+                  },
+                  child: BlocBuilder<WeatherBlocBloc, WeatherBlocState>(
+                    builder: (context, state) {
+                      if (state is WeatherBlocSuccess) {
+                        _markers.add(Marker(
+                            width: 80,
+                            height: 80,
+                            point: currentPos,
+                            child: getWeatherIcon(
+                                state.weather.weatherConditionCode!)));
+                      }
+                      return _body();
+                    },
                   ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-                      // tileProvider: CancellableNetworkTileProvider(),
-                      // tileUpdateTransformer: _animatedMoveTileUpdateTransformer,
-                    ),
-                    MarkerLayer(markers: _markers),
-                  ],
-                ),
+                );
+              } else {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+            })
+
+        //  BlocBuilder<WeatherBlocBloc, WeatherBlocState>(
+        //   builder: (context, state) {
+        //     if (state is WeatherBlocSuccess) {
+        //       _markers.add(Marker(
+        //           width: 80,
+        //           height: 80,
+        //           point: currentPos,
+        //           child: getWeatherIcon(state.weather.weatherConditionCode!)));
+        //     }
+        //     return _body();
+        //   },
+        // ),
+        );
+  }
+
+  Column _body() {
+    return Column(
+      children: [
+        Flexible(
+          child: FlutterMap(
+            mapController: mapController,
+            options: MapOptions(
+              initialCenter: currentPos,
+              initialZoom: 15,
+              maxZoom: 10,
+              minZoom: 3,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+                // tileProvider: CancellableNetworkTileProvider(),
+                // tileUpdateTransformer: _animatedMoveTileUpdateTransformer,
               ),
+              MarkerLayer(markers: _markers),
             ],
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 }
